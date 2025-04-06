@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import { RouterOutlet } from '@angular/router';
-import { NgClass, NgFor } from '@angular/common';
+import {RouterLink, RouterOutlet} from '@angular/router';
 
 export interface TodoItem {
   id: number;
@@ -12,41 +11,11 @@ export interface TodoItem {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, FormsModule, NgFor, NgClass],
+  imports: [RouterOutlet, FormsModule, RouterLink],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  
-  todoList  : TodoItem [] = [];
-  newTask: string=''
-
-  addTask():void{
-    if(this.newTask.trim() !== ''){
-      const  newTodoItem : TodoItem = {
-        id : Date.now(),
-        task : this.newTask,
-        completed: false
-      }
-
-      this.todoList.push(newTodoItem)
-      this.newTask = ''
-    }
-  }
-
-  toggleCompleted(id : number):void{
-    const todoItem = this.todoList.find(item => item.id === id);
-    if(todoItem){
-      todoItem.completed = !todoItem.completed;
-    }
-  }
-
-  editTask(id : number) {
-    this.todoList = this.todoList.filter(item => item.id !== id);
-  }
-
-  deleteTask(id : number) {
-    this.todoList = this.todoList.filter(item => item.id !== id);
-  }
-
+  // This is the main component of the application. If you check the HTML file, it contains the navigation bar, and the
+  // <router-outlet> where the other pages' contents get rendered.
 }
