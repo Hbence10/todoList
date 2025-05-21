@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import todoListJson from './todo-list.json';
 
-export interface TodoItem {
+interface TodoItem {
   id: number;
   task: string;
   completed: boolean;
@@ -12,87 +12,68 @@ export interface TodoItem {
 @Component({
   selector: 'app-todo-list',
   standalone: true,
-  imports: [FormsModule, NgClass, NgFor, NgIf],
+  imports: [FormsModule, CommonModule],
   templateUrl: './todo-list.component.html',
-  styleUrl: './todo-list.component.css'
+  styleUrl: './todo-list.component.css',
 })
-export class TodoListComponent {
+export class TodoListComponent implements OnInit {
+  // VALTOZOK:
+  todoList: TodoItem[] = []; //todolist
+  editingId: number | null = null; //az edithez szukseges id, lenyege: ez alapjan fog megjelenni az input az edithez
 
-  todoList: TodoItem [] = [];
-  newTask: string = '';
-  editingId: number | null = null; // the identifier of the task what we are currently editing
-  editedTask: string = ''; // the task (text) what we are currently editing and we want to save
-
-  // ngOnInit is a lifecycle hook that is called after the component has been initialized (displayed on the screen).
   ngOnInit() {
-    // Get the `todoList` from the local storage in the browser
+    //1. megnezi, hogy van-e olyan valtozo lementve a local storage-ba hogy todoList
     const localStorageTodoList = localStorage.getItem('todoList');
 
-    // If there is no `todoList` in the local storage, set it to the default value from the JSON file
+    // ha nincs akkor letrehozza, azzal a listaval ami a JSON-ba van lementve
     if (!localStorageTodoList) {
       localStorage.setItem('todoList', JSON.stringify(todoListJson));
     }
 
-    // If there is a `todoList` in the local storage, parse it and set it to the `todoList` property.
-    // If there is no `todoList` in the local storage, set it to an empty array.
+    //2. lementi a todoList valtozoba a local storage elemet
     this.todoList = JSON.parse(localStorage.getItem('todoList') || '[]');
   }
 
-  addTask(): void {
-    if(this.newTask.trim() !== ''){
-      const newTodoItem : TodoItem = {
-        id : Date.now(),
-        task : this.newTask,
-        completed: false
-      }
+  //task hozza adasa:
+  addTask(newTask: string): void {
+    if (newTask.length) {                 //csak akkor adja hozza ha irt valamit az inputba
+      const newTodoItem: TodoItem = {     //letrehozza az uj elemet
+        id: Date.now(),
+        task: newTask,
+        completed: false,
+      };
 
-      this.todoList.push(newTodoItem)
-      this.newTask = ''
+      this.todoList.push(newTodoItem); //hozzaadja a listahoz
       this.updateTodoListInLocalStorage();
     }
+
   }
 
-  // It's not needed to update the "completed" in this method, because of this: `[(ngModel)]="todoItem.completed"`
-  // `ngModel` is a two-way data binding directive that binds the value of the input field to the `completed` property of the `todoItem`.
+  //kesznek jeloli
   toggleCompleted(): void {
     this.updateTodoListInLocalStorage();
   }
 
-  editTask(id: number) {
-    // let's find the item we want to edit
-    const item = this.todoList.find(item => item.id === id);
-
-    // if the item was found...
-    if (item) {
-      // ... set the `editingId` to the id of the item we want to edit and set the `editedTask` to the current task (text)
-      this.editingId = id;
-      this.editedTask = item.task;
-    }
+  editTask(wantedItem: TodoItem) {
+    this.editingId = wantedItem.id;
   }
 
-  saveTask(id: number) {
-    const item = this.todoList.find(item => item.id === id);
-
-    if (item) {
-      // upon saving, we update the item's task (text) with the `editedTask` value and reset the `editingId` and `editedTask` properties
-      item.task = this.editedTask.trim();
-      this.editingId = null;
-      this.editedTask = '';
-      this.updateTodoListInLocalStorage();
-    }
-  }
-
-  // this method is called when the user clicks the "Cancel" button in the edit mode, and we reset the `editingId` and `editedTask` properties
-  cancelEdit(): void {
+  saveTask(wantedItem: TodoItem) {
     this.editingId = null;
-    this.editedTask = '';
-  }
-
-  deleteTask(id: number) {
-    this.todoList = this.todoList.filter(item => item.id !== id);
     this.updateTodoListInLocalStorage();
   }
 
+  cancelEdit(): void {
+    this.editingId = null;
+  }
+
+  //id alapjan kikeresi a listabol az elemet
+  deleteTask(id: number) {
+    this.todoList = this.todoList.filter((item) => item.id !== id); //csak az fog benne lenni a listaban aminek az id-ja nem fog vele egyezni
+    this.updateTodoListInLocalStorage();
+  }
+
+  //ujra feltolti local storageba a listat
   updateTodoListInLocalStorage() {
     localStorage.setItem('todoList', JSON.stringify(this.todoList));
   }
